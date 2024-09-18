@@ -57,7 +57,7 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
             onCheckedChange = { checked = it },
         )
         Text("materialswitchcmp Replacement")
-        com.t895.materialswitchcmp.Switch(
+        com.t895.materialswitch.Switch(
             enabled = enabled,
             checked = checked,
             onCheckedChange = { checked = it },

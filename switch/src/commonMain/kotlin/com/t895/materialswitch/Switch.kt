@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.t895.materialswitchcmp
+package com.t895.materialswitch
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -497,6 +497,4 @@ class SwitchColors(
         result = 31 * result + disabledUncheckedIconColor.hashCode()
         return result
     }
-
-    companion object
 }

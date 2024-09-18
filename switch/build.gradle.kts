@@ -8,7 +8,7 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-val libName = "materialswitchcmp"
+val libName = "materialswitch"
 val libPackage = "com.t895.$libName"
 
 group = libPackage
@@ -28,7 +28,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
-            baseName = "shared"
+            baseName = "switch"
             isStatic = true
         }
     }

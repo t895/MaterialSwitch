@@ -28,5 +28,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-include(":shared")
+include(":switch")
 include(":switch-test")
