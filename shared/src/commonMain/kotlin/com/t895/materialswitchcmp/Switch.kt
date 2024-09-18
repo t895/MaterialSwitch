@@ -47,7 +47,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
@@ -96,7 +96,7 @@ private fun lerp(start: Color, end: Color, fraction: Float): Color {
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MaterialSwitch(
+fun Switch(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
@@ -121,55 +121,48 @@ fun MaterialSwitch(
     val drag = { offset: Offset ->
         dragFloat = (dragFloat + (offset.x / trackWidthPx)).coerceIn(0f, 1f)
     }
+    val onCheckedChangeInternal = { newChecked: Boolean ->
+        if (onCheckedChange != null) {
+            onCheckedChange(newChecked)
+        }
+        dragFloat = if (newChecked) 1f else 0f
+    }
 
-    var ignoreAnimation by remember { mutableStateOf(false) }
-    val instantAnimation = tween<Float>(durationMillis = 0)
+    // This is a little hacky because we can't change the current value at some point
+    // during the animation to cancel the animation from 0 -> 1 or vice versa when we've
+    // already dragged the thumb to say, 0.65. Here, I just actively animate to the drag
+    // position while the drag is happening with an instant animation. Then once the drag
+    // finishes, we relinquish control over the thumb to this animation.
     val thumbProgressAnimated by animateFloatAsState(
-        targetValue = if (checked) {
+        targetValue = if (isDragging) {
+            dragFloat
+        } else if (checked) {
             1f
         } else {
             0f
         },
-        animationSpec = if (ignoreAnimation) instantAnimation else tween(),
-        finishedListener = {
-            ignoreAnimation = false
+        animationSpec = if (isDragging) {
+            tween(durationMillis = 0)
+        } else {
+            tween(durationMillis = 250)
         },
     )
-    val thumbProgress by remember {
-        derivedStateOf {
-            if (isDragging || ignoreAnimation) {
-                dragFloat
-            } else {
-                thumbProgressAnimated
-            }
-        }
+
+    val thumbProgress = if (isDragging) {
+        dragFloat
+    } else {
+        thumbProgressAnimated
     }
 
     val trackColor = lerp(
-        start = if (enabled) {
-            colors.uncheckedTrackColor
-        } else {
-            colors.disabledUncheckedTrackColor
-        },
-        end = if (enabled) {
-            colors.checkedTrackColor
-        } else {
-            colors.disabledCheckedTrackColor
-        },
+        start = colors.trackColor(enabled, false),
+        end = colors.trackColor(enabled, true),
         fraction = thumbProgress,
     )
 
-    val outlineColor = lerp(
-        start = if (enabled) {
-            colors.uncheckedBorderColor
-        } else {
-            colors.disabledUncheckedBorderColor
-        },
-        end = if (enabled) {
-            colors.checkedBorderColor
-        } else {
-            colors.disabledCheckedBorderColor
-        },
+    val borderColor = lerp(
+        start = colors.borderColor(enabled, false),
+        end = colors.borderColor(enabled, true),
         fraction = thumbProgress,
     )
 
@@ -180,7 +173,7 @@ fun MaterialSwitch(
             .requiredSize(width = switchWidth, height = switchHeight)
             .border(
                 width = outlineWidth,
-                color = outlineColor,
+                color = borderColor,
                 shape = RoundedCornerShape(switchCornerSize),
             )
             .drawBehind {
@@ -198,23 +191,11 @@ fun MaterialSwitch(
                 onDragStopped = {
                     if (checked) {
                         if (dragFloat < 0.5f) {
-                            onCheckedChange!!(false)
-                            if (!checked) {
-                                dragFloat = 0f
-                                ignoreAnimation = true
-                            } else {
-                                dragFloat = 1f
-                            }
+                            onCheckedChangeInternal(false)
                         }
                     } else {
                         if (dragFloat > 0.5f) {
-                            onCheckedChange!!(true)
-                            if (checked) {
-                                dragFloat = 1f
-                                ignoreAnimation = true
-                            } else {
-                                dragFloat = 0f
-                            }
+                            onCheckedChangeInternal(true)
                         }
                     }
                 },
@@ -224,30 +205,16 @@ fun MaterialSwitch(
                 indication = null,
                 enabled = interactable,
                 onClick = {
-                    if (onCheckedChange != null) {
-                        onCheckedChange(!checked)
-                    }
+                    onCheckedChangeInternal(!checked)
                 },
+                role = Role.Switch,
             ),
         contentAlignment = Alignment.CenterStart,
     ) {
         val thumbPressed by remember { derivedStateOf { isPressed || isDragging } }
-
         val thumbColor = lerp(
-            start = if (thumbPressed) {
-                colors.uncheckedPressedThumbColor
-            } else if (enabled) {
-                colors.uncheckedThumbColor
-            } else {
-                colors.disabledUncheckedThumbColor
-            },
-            end = if (thumbPressed) {
-                colors.checkedPressedThumbColor
-            } else if (enabled) {
-                colors.checkedThumbColor
-            } else {
-                colors.disabledCheckedThumbColor
-            },
+            start = colors.thumbColor(enabled, false, thumbPressed),
+            end = colors.thumbColor(enabled, true, thumbPressed),
             fraction = thumbProgress,
         )
 
@@ -267,7 +234,7 @@ fun MaterialSwitch(
                     thumbUncheckedSize
                 }
             },
-            animationSpec = tween(durationMillis = 100),
+            animationSpec = tween(durationMillis = 150),
         )
 
         Box(
@@ -287,7 +254,7 @@ fun MaterialSwitch(
                     indication = ripple(
                         bounded = false,
                         radius = stateLayerSize / 2,
-                    )
+                    ),
                 ),
             contentAlignment = Alignment.Center,
         ) {
@@ -308,10 +275,12 @@ fun MaterialSwitch(
  * Represents the colors used by a [Switch] in different states
  *
  * @param checkedThumbColor the color used for the thumb when enabled and checked
+ * @param checkedPressedThumbColor the color used for the thumb when checked and pressed
  * @param checkedTrackColor the color used for the track when enabled and checked
  * @param checkedBorderColor the color used for the border when enabled and checked
  * @param checkedIconColor the color used for the icon when enabled and checked
  * @param uncheckedThumbColor the color used for the thumb when enabled and unchecked
+ * @param uncheckedPressedThumbColor the color used for the thumb when unchecked and pressed
  * @param uncheckedTrackColor the color used for the track when enabled and unchecked
  * @param uncheckedBorderColor the color used for the border when enabled and unchecked
  * @param uncheckedIconColor the color used for the icon when enabled and unchecked
@@ -423,12 +392,21 @@ class SwitchColors(
      * @param checked whether the [Switch] is checked or not
      */
     @Stable
-    internal fun thumbColor(enabled: Boolean, checked: Boolean): Color =
-        if (enabled) {
+    internal fun thumbColor(enabled: Boolean, checked: Boolean, pressed: Boolean): Color {
+        if (pressed) {
+            return if (checked) {
+                checkedPressedThumbColor
+            } else {
+                uncheckedPressedThumbColor
+            }
+        }
+
+        return if (enabled) {
             if (checked) checkedThumbColor else uncheckedThumbColor
         } else {
             if (checked) disabledCheckedThumbColor else disabledUncheckedThumbColor
         }
+    }
 
     /**
      * Represents the color used for the switch's track, depending on [enabled] and [checked].
