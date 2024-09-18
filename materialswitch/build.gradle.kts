@@ -10,9 +10,10 @@ plugins {
 
 val libName = "materialswitch"
 val libPackage = "com.t895.$libName"
+val packageVersion = "0.1.2"
 
 group = libPackage
-version = "0.1.2"
+version = packageVersion
 
 kotlin {
     jvmToolchain(17)
@@ -69,7 +70,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.t895",
         artifactId = libName,
-        version = "0.1.1"
+        version = packageVersion,
     )
 
     // Configure POM metadata for the published artifact
