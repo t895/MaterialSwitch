@@ -102,7 +102,7 @@ fun MaterialSwitch(
     thumbContent: (@Composable BoxScope.() -> Unit)? = null,
     enabled: Boolean = true,
     colors: MaterialSwitchColors = MaterialSwitchColors(MaterialTheme.colorScheme, SwitchDefaults.colors()),
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    interactionSource: MutableInteractionSource? = null,
 ) {
     val switchCornerSize = 128.dp
     val switchWidth = 52.dp
@@ -114,8 +114,9 @@ fun MaterialSwitch(
     val trackWidthPx =
         (thumbMaxPositionX.value - thumbMinPositionX.value) * LocalDensity.current.density
 
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val isDragging by interactionSource.collectIsDraggedAsState()
+    val internalInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
+    val isPressed by internalInteractionSource.collectIsPressedAsState()
+    val isDragging by internalInteractionSource.collectIsDraggedAsState()
     var dragFloat by remember { mutableFloatStateOf(if (checked) 1f else 0f) }
     val drag = { offset: Offset ->
         dragFloat = (dragFloat + (offset.x / trackWidthPx)).coerceIn(0f, 1f)
@@ -186,7 +187,7 @@ fun MaterialSwitch(
                     drag(offset)
                 },
                 enabled = interactable,
-                interactionSource = interactionSource,
+                interactionSource = internalInteractionSource,
                 onDragStarted = {
                     dragFloat = if (checked) 1f else 0f
                 },
@@ -203,7 +204,7 @@ fun MaterialSwitch(
                 },
             )
             .clickable(
-                interactionSource = interactionSource,
+                interactionSource = internalInteractionSource,
                 indication = null,
                 enabled = interactable,
                 onClick = {
@@ -252,7 +253,7 @@ fun MaterialSwitch(
                     )
                 }
                 .indication(
-                    interactionSource = interactionSource,
+                    interactionSource = internalInteractionSource,
                     indication = ripple(
                         bounded = false,
                         radius = stateLayerSize / 2,
