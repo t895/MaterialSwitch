@@ -188,6 +188,9 @@ fun Switch(
                 },
                 enabled = interactable,
                 interactionSource = interactionSource,
+                onDragStarted = {
+                    dragFloat = if (checked) 1f else 0f
+                },
                 onDragStopped = {
                     if (checked) {
                         if (dragFloat < 0.5f) {
