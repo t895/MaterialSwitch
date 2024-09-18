@@ -37,7 +37,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -87,7 +86,7 @@ private fun lerp(start: Color, end: Color, fraction: Float): Color {
  * @param enabled controls the enabled state of this switch. When `false`, this component will not
  *   respond to user input, and it will appear visually disabled and disabled to accessibility
  *   services.
- * @param colors [SwitchColors] that will be used to resolve the colors used for this switch in
+ * @param colors [MaterialSwitchColors] that will be used to resolve the colors used for this switch in
  *   different states. See [SwitchDefaults.colors].
  * @param interactionSource an optional hoisted [MutableInteractionSource] for observing and
  *   emitting [Interaction]s for this switch. You can use this to change the switch's appearance or
@@ -96,13 +95,13 @@ private fun lerp(start: Color, end: Color, fraction: Float): Color {
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Switch(
+fun MaterialSwitch(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
     thumbContent: (@Composable BoxScope.() -> Unit)? = null,
     enabled: Boolean = true,
-    colors: SwitchColors = SwitchColors(MaterialTheme.colorScheme, SwitchDefaults.colors()),
+    colors: MaterialSwitchColors = MaterialSwitchColors(MaterialTheme.colorScheme, SwitchDefaults.colors()),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
     val switchCornerSize = 128.dp
@@ -275,7 +274,7 @@ fun Switch(
 }
 
 /**
- * Represents the colors used by a [Switch] in different states
+ * Represents the colors used by a [MaterialSwitch] in different states
  *
  * @param checkedThumbColor the color used for the thumb when enabled and checked
  * @param checkedPressedThumbColor the color used for the thumb when checked and pressed
@@ -299,7 +298,7 @@ fun Switch(
  *   default implementation that follows Material specifications.
  */
 @Immutable
-class SwitchColors(
+class MaterialSwitchColors(
     val checkedThumbColor: Color,
     val checkedPressedThumbColor: Color,
     val checkedTrackColor: Color,
@@ -367,7 +366,7 @@ class SwitchColors(
         disabledUncheckedBorderColor: Color = this.disabledUncheckedBorderColor,
         disabledUncheckedIconColor: Color = this.disabledUncheckedIconColor,
     ) =
-        SwitchColors(
+        MaterialSwitchColors(
             checkedThumbColor.takeOrElse { this.checkedThumbColor },
             checkedPressedThumbColor.takeOrElse { this.checkedPressedThumbColor },
             checkedTrackColor.takeOrElse { this.checkedTrackColor },
@@ -391,8 +390,8 @@ class SwitchColors(
     /**
      * Represents the color used for the switch's thumb, depending on [enabled] and [checked].
      *
-     * @param enabled whether the [Switch] is enabled or not
-     * @param checked whether the [Switch] is checked or not
+     * @param enabled whether the [MaterialSwitch] is enabled or not
+     * @param checked whether the [MaterialSwitch] is checked or not
      */
     @Stable
     internal fun thumbColor(enabled: Boolean, checked: Boolean, pressed: Boolean): Color {
@@ -414,8 +413,8 @@ class SwitchColors(
     /**
      * Represents the color used for the switch's track, depending on [enabled] and [checked].
      *
-     * @param enabled whether the [Switch] is enabled or not
-     * @param checked whether the [Switch] is checked or not
+     * @param enabled whether the [MaterialSwitch] is enabled or not
+     * @param checked whether the [MaterialSwitch] is checked or not
      */
     @Stable
     internal fun trackColor(enabled: Boolean, checked: Boolean): Color =
@@ -428,8 +427,8 @@ class SwitchColors(
     /**
      * Represents the color used for the switch's border, depending on [enabled] and [checked].
      *
-     * @param enabled whether the [Switch] is enabled or not
-     * @param checked whether the [Switch] is checked or not
+     * @param enabled whether the [MaterialSwitch] is enabled or not
+     * @param checked whether the [MaterialSwitch] is checked or not
      */
     @Stable
     internal fun borderColor(enabled: Boolean, checked: Boolean): Color =
@@ -442,8 +441,8 @@ class SwitchColors(
     /**
      * Represents the content color passed to the icon if used
      *
-     * @param enabled whether the [Switch] is enabled or not
-     * @param checked whether the [Switch] is checked or not
+     * @param enabled whether the [MaterialSwitch] is enabled or not
+     * @param checked whether the [MaterialSwitch] is checked or not
      */
     @Stable
     internal fun iconColor(enabled: Boolean, checked: Boolean): Color =
@@ -455,7 +454,7 @@ class SwitchColors(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || other !is SwitchColors) return false
+        if (other == null || other !is MaterialSwitchColors) return false
 
         if (checkedThumbColor != other.checkedThumbColor) return false
         if (checkedPressedThumbColor != other.uncheckedPressedThumbColor) return false

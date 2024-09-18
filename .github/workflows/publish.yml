@@ -1,11 +1,11 @@
-name: materialswitchcmp-publish
+name: switch-publish
 
 on:
   workflow_dispatch:
 
 jobs:
   publish:
-    if: ${{ github.repository == 't895/materialswitchcmp' }}
+    if: ${{ github.repository == 't895/MaterialSwitch' }}
     runs-on: macos-latest
     steps:
      - name: Checkout

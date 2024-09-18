@@ -1,4 +1,4 @@
-rootProject.name = "materialswitchcmp"
+rootProject.name = "materialswitch"
 
 pluginManagement {
     repositories {
@@ -28,5 +28,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-include(":switch")
-include(":switch-test")
+include(":materialswitch")
+include(":materialswitch-test")

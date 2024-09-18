@@ -12,7 +12,7 @@ val libName = "materialswitch"
 val libPackage = "com.t895.$libName"
 
 group = libPackage
-version = "0.1.0"
+version = "0.1.1"
 
 kotlin {
     jvmToolchain(17)
@@ -28,7 +28,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
-            baseName = "switch"
+            baseName = libName
             isStatic = true
         }
     }
@@ -69,7 +69,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.t895",
         artifactId = libName,
-        version = "0.1.0"
+        version = "0.1.1"
     )
 
     // Configure POM metadata for the published artifact
@@ -77,7 +77,7 @@ mavenPublishing {
         name.set(libName)
         description.set("Material 3 Switch accurately implemented to its design spec in Compose Multiplatform")
         inceptionYear.set("2024")
-        url.set("https://github.com/t895/mcstatuskt")
+        url.set("https://github.com/t895/MaterialSwitch")
 
         licenses {
             license {
