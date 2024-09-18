@@ -12,7 +12,7 @@ val libName = "materialswitch"
 val libPackage = "com.t895.$libName"
 
 group = libPackage
-version = "0.1.1"
+version = "0.1.2"
 
 kotlin {
     jvmToolchain(17)
