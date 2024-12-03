@@ -46,6 +46,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,7 +58,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
@@ -109,8 +112,21 @@ fun MaterialSwitch(
     val switchHeight = 32.dp
     val outlineWidth = 2.dp
 
-    val thumbMinPositionX = outlineWidth
-    val thumbMaxPositionX = switchWidth / 2 - outlineWidth * 2
+    val layoutDirection = LocalLayoutDirection.current
+    val thumbMinPositionX by remember {
+        var position = outlineWidth
+        if (layoutDirection == LayoutDirection.Rtl) {
+            position *= -1
+        }
+        mutableStateOf(position)
+    }
+    val thumbMaxPositionX by remember {
+        var position = switchWidth / 2 - outlineWidth * 2
+        if (layoutDirection == LayoutDirection.Rtl) {
+            position *= -1
+        }
+        mutableStateOf(position)
+    }
     val trackWidthPx =
         (thumbMaxPositionX.value - thumbMinPositionX.value) * LocalDensity.current.density
 
