@@ -21,7 +21,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.indication
@@ -33,6 +32,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
@@ -203,11 +203,12 @@ fun MaterialSwitch(
                     }
                 },
             )
-            .clickable(
+            .toggleable(
+                value = checked,
                 interactionSource = internalInteractionSource,
                 indication = null,
                 enabled = interactable,
-                onClick = {
+                onValueChange = {
                     onCheckedChangeInternal(!checked)
                 },
                 role = Role.Switch,
