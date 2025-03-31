@@ -1,14 +1,17 @@
 [versions]
-kotlin = "2.1.0"
-agp = "8.5.2"
-compose = "1.7.1"
-coreKtx = "1.15.0"
-activityCompose = "1.9.3"
-composeBom = "2024.11.00"
+kotlin = "2.1.20"
+agp = "8.7.3"
+compose = "1.7.3"
+activityCompose = "1.10.1"
+composeBom = "2025.03.01"
 material = "1.12.0"
+mavenPublish = "0.28.0"
+androidCompileSdk = "35"
+androidMinSdk = "21"
+androidTargetSdk = "35"
+jvmToolchain = "17"
 
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
@@ -23,3 +26,4 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

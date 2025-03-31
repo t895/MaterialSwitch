@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.t895.switch_test"
-    compileSdk = 34
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.t895.switch_test"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 24 // Hard coded because this is the version that the compose preview uses
+        targetSdk = libs.versions.androidTargetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 
@@ -44,6 +44,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+kotlin {
+    jvmToolchain(libs.versions.jvmToolchain.get().toInt())
 }
 
 dependencies {
