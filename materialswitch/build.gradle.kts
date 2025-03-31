@@ -10,7 +10,7 @@ plugins {
 
 val libName = "materialswitch"
 val libPackage = "com.t895.$libName"
-val packageVersion = "0.1.3"
+val packageVersion = "0.1.4"
 
 group = libPackage
 version = packageVersion
