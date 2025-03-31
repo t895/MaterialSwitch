@@ -280,9 +280,12 @@ fun MaterialSwitch(
         ) {
             Box(modifier = Modifier.size(16.dp)) {
                 if (thumbContent != null) {
-                    CompositionLocalProvider(
-                        LocalContentColor provides colors.iconColor(enabled, checked)
-                    ) {
+                    val iconColor = lerp(
+                        start = colors.iconColor(enabled, false),
+                        end = colors.iconColor(enabled, true),
+                        fraction = thumbProgress,
+                    )
+                    CompositionLocalProvider(LocalContentColor provides iconColor) {
                         thumbContent()
                     }
                 }
