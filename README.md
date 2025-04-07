@@ -9,7 +9,7 @@ multiple animations and color states.
 ### Dependency
 
 Works on all platforms that Compose multiplatform is available on
-`implementation("io.github.t895:materialswitch:0.1.4")`
+`implementation("io.github.t895:materialswitch:0.1.5")`
 
 ### Demo
 
@@ -19,15 +19,15 @@ Works on all platforms that Compose multiplatform is available on
 
 #### Android aar
 
-- Run `./gradlew :switch:assembleRelease`
+- Run `./gradlew :materialswitch:assembleRelease`
 - Output: `/switch/build/outputs/aar/switch-release.aar`
 
 #### JVM jar
 
-- Run `./gradlew :switch:jvmJar`
+- Run `./gradlew :materialswitch:jvmJar`
 - Output: `/switch/build/libs/switch-jvm-1.0.jar`
 
 #### iOS Framework
 
-- Run `./gradlew :switch:linkReleaseFrameworkIosArm64`
+- Run `./gradlew :materialswitch:linkReleaseFrameworkIosArm64`
 - Output: `/switch/build/bin/iosArm64/releaseFramework/switch.framework`
