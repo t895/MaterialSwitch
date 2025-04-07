@@ -102,7 +102,7 @@ fun MaterialSwitch(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
-    thumbContent: (@Composable BoxScope.() -> Unit)? = null,
+    thumbContent: (@Composable BoxScope.(mostlyEnabled: Boolean) -> Unit)? = null,
     enabled: Boolean = true,
     colors: MaterialSwitchColors = MaterialSwitchColors(MaterialTheme.colorScheme, SwitchDefaults.colors()),
     interactionSource: MutableInteractionSource? = null,
@@ -286,7 +286,7 @@ fun MaterialSwitch(
                         fraction = thumbProgress,
                     )
                     CompositionLocalProvider(LocalContentColor provides iconColor) {
-                        thumbContent()
+                        thumbContent(thumbProgress > 0.5f)
                     }
                 }
             }

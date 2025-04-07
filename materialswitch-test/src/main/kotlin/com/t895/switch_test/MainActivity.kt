@@ -84,8 +84,8 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
             enabled = enabled,
             checked = checked,
             onCheckedChange = { checked = it },
-            thumbContent = {
-                if (checked) {
+            thumbContent = { mostlyEnabled ->
+                if (mostlyEnabled) {
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
