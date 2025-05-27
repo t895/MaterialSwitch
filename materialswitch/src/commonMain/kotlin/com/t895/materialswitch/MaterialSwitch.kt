@@ -17,12 +17,10 @@
 package com.t895.materialswitch
 
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.indication
@@ -31,11 +29,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -48,15 +44,17 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalDensity
@@ -64,7 +62,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
 
 private fun lerp(start: Color, end: Color, fraction: Float): Color {
@@ -75,6 +72,18 @@ private fun lerp(start: Color, end: Color, fraction: Float): Color {
         blue = lerp(start.blue, end.blue, fraction),
     )
 }
+
+internal val SwitchCornerSize = 128.dp
+internal val SwitchWidth = 52.dp
+internal val SwitchHeight = 32.dp
+internal val SwitchOutlineWidth = 2.dp
+internal val SwitchThumbPressedSize = 28.dp
+internal val SwitchThumbPressedRadius = SwitchThumbPressedSize / 2
+internal val SwitchThumbCheckedSize = 24.dp
+internal val SwitchThumbCheckedRadius = SwitchThumbCheckedSize / 2
+internal val SwitchThumbUncheckedSize = 16.dp
+internal val SwitchThumbUncheckedRadius = SwitchThumbUncheckedSize / 2
+internal val SwitchStateLayerSize = 40.dp
 
 /**
  * <a href="https://m3.material.io/components/switch" class="external" target="_blank">Material
@@ -87,7 +96,8 @@ private fun lerp(start: Color, end: Color, fraction: Float): Color {
  *   be interactable, unless something else handles its input events and updates its state.
  * @param modifier the [Modifier] to be applied to this switch
  * @param thumbContent content that will be drawn inside the thumb, expected to measure
- *   [SwitchDefaults.IconSize]
+ *   [SwitchDefaults.IconSize]. The parameter "mostlyEnabled" is a hint to the user to indicate
+ *   when to change the thumb content between a checked and unchecked state.
  * @param enabled controls the enabled state of this switch. When `false`, this component will not
  *   respond to user input, and it will appear visually disabled and disabled to accessibility
  *   services.
@@ -104,7 +114,7 @@ fun MaterialSwitch(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
-    thumbContent: (@Composable BoxScope.(mostlyEnabled: Boolean) -> Unit)? = null,
+    thumbContent: (@Composable (mostlyEnabled: Boolean) -> Unit)? = null,
     enabled: Boolean = true,
     colors: MaterialSwitchColors = MaterialSwitchColors(
         MaterialTheme.colorScheme,
@@ -112,40 +122,32 @@ fun MaterialSwitch(
     ),
     interactionSource: MutableInteractionSource? = null,
 ) {
-    val switchCornerSize = 128.dp
-    val switchWidth = 52.dp
-    val switchHeight = 32.dp
-    val outlineWidth = 2.dp
-
     val layoutDirection = LocalLayoutDirection.current
-    val thumbMinPositionX by remember {
-        var position = outlineWidth
+    val density = LocalDensity.current
+    val thumbMinPositionXPx = remember {
+        var position = SwitchOutlineWidth
         if (layoutDirection == LayoutDirection.Rtl) {
             position *= -1
         }
-        mutableStateOf(position)
+
+        density.density * position.value
     }
-    val thumbMaxPositionX by remember {
-        var position = switchWidth / 2 - outlineWidth * 2
+    val thumbMaxPositionXPx = remember {
+        var position = SwitchWidth / 2 - SwitchOutlineWidth * 2
         if (layoutDirection == LayoutDirection.Rtl) {
             position *= -1
         }
-        mutableStateOf(position)
+
+        density.density * position.value
     }
-    val trackWidthPx =
-        (thumbMaxPositionX.value - thumbMinPositionX.value) * LocalDensity.current.density
+    val trackWidthPx = remember { thumbMaxPositionXPx - thumbMinPositionXPx }
 
     val internalInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
     val isPressed by internalInteractionSource.collectIsPressedAsState()
     val isDragging by internalInteractionSource.collectIsDraggedAsState()
     var dragFloat by remember { mutableFloatStateOf(if (checked) 1f else 0f) }
-    val drag = { offset: Offset ->
-        dragFloat = (dragFloat + (offset.x / trackWidthPx)).coerceIn(0f, 1f)
-    }
     val onCheckedChangeInternal = { newChecked: Boolean ->
-        if (onCheckedChange != null) {
-            onCheckedChange(newChecked)
-        }
+        onCheckedChange?.invoke(newChecked)
         dragFloat = if (newChecked) 1f else 0f
     }
 
@@ -154,73 +156,102 @@ fun MaterialSwitch(
     // already dragged the thumb to say, 0.65. Here, I just actively animate to the drag
     // position while the drag is happening with an instant animation. Then once the drag
     // finishes, we relinquish control over the thumb to this animation.
-    val thumbProgressAnimated by animateFloatAsState(
-        targetValue = if (isDragging) {
+    val targetProgressValue = remember(isDragging, dragFloat, checked) {
+        if (isDragging) {
             dragFloat
         } else if (checked) {
             1f
         } else {
             0f
-        },
+        }
+    }
+    val thumbProgressAnimated by animateFloatAsState(
+        targetValue = targetProgressValue,
         animationSpec = if (isDragging) {
             tween(durationMillis = 0)
         } else {
             spring(dampingRatio = Spring.DampingRatioLowBouncy)
         },
     )
-
     val colorProgressAnimated by animateFloatAsState(
-        targetValue = if (isDragging) {
-            dragFloat
-        } else if (checked) {
-            1f
-        } else {
-            0f
-        },
+        targetValue = targetProgressValue,
         animationSpec = if (isDragging) {
             tween(durationMillis = 0)
         } else {
-            tween(durationMillis = 250)
+            tween(durationMillis = 200)
         },
     )
 
-    val thumbProgress = if (isDragging) {
-        dragFloat
-    } else {
-        thumbProgressAnimated
+    val thumbProgress by remember {
+        derivedStateOf {
+            if (isDragging) {
+                dragFloat
+            } else {
+                thumbProgressAnimated
+            }
+        }
     }
 
-    val trackColor = lerp(
-        start = colors.trackColor(enabled, false),
-        end = colors.trackColor(enabled, true),
-        fraction = colorProgressAnimated,
-    )
+    val trackColor by remember(colorProgressAnimated, enabled) {
+        derivedStateOf {
+            lerp(
+                start = colors.trackColor(enabled, false),
+                end = colors.trackColor(enabled, true),
+                fraction = colorProgressAnimated,
+            )
+        }
+    }
 
-    val borderColor = lerp(
-        start = colors.borderColor(enabled, false),
-        end = colors.borderColor(enabled, true),
-        fraction = colorProgressAnimated,
-    )
+    val borderColor by remember(colorProgressAnimated, enabled) {
+        derivedStateOf {
+            lerp(
+                start = colors.borderColor(enabled, false),
+                end = colors.borderColor(enabled, true),
+                fraction = colorProgressAnimated,
+            )
+        }
+    }
 
-    val thumbPositionX = lerp(thumbMinPositionX, thumbMaxPositionX, thumbProgress)
     val interactable = enabled && onCheckedChange != null
+
+    val cornerSizePx = remember { density.density * SwitchCornerSize.value }
+    val outlineWidthPx = remember { density.density * SwitchOutlineWidth.value }
+    val halfOutlineWidthPx = remember { outlineWidthPx / 2 }
+    val cornerRadius = remember { CornerRadius(cornerSizePx, cornerSizePx) }
+    val outlineRightBoundPx =
+        remember { (density.density * SwitchWidth.value) - halfOutlineWidthPx }
+    val outlineBottomBoundPx =
+        remember { (density.density * SwitchHeight.value) - halfOutlineWidthPx }
     Box(
         modifier = modifier
-            .requiredSize(width = switchWidth, height = switchHeight)
-            .border(
-                width = outlineWidth,
-                color = borderColor,
-                shape = RoundedCornerShape(switchCornerSize),
-            )
+            .requiredSize(width = SwitchWidth, height = SwitchHeight)
             .drawBehind {
                 drawRoundRect(
                     color = trackColor,
-                    cornerRadius = CornerRadius(switchCornerSize.toPx()),
+                    cornerRadius = CornerRadius(cornerSizePx),
+                )
+
+                val outline = Outline.Rounded(
+                    RoundRect(
+                        left = halfOutlineWidthPx,
+                        top = halfOutlineWidthPx,
+                        right = outlineRightBoundPx,
+                        bottom = outlineBottomBoundPx,
+                        topLeftCornerRadius = cornerRadius,
+                        topRightCornerRadius = cornerRadius,
+                        bottomLeftCornerRadius = cornerRadius,
+                        bottomRightCornerRadius = cornerRadius,
+                    )
+                )
+                drawOutline(
+                    outline = outline,
+                    color = borderColor,
+                    style = Stroke(width = outlineWidthPx)
                 )
             }
             .draggable2D(
                 state = rememberDraggable2DState { offset ->
-                    drag(offset)
+                    dragFloat = (dragFloat + (offset.x / trackWidthPx)).coerceIn(0f, 1f)
                 },
                 enabled = interactable,
                 interactionSource = internalInteractionSource,
@@ -252,59 +283,75 @@ fun MaterialSwitch(
         contentAlignment = Alignment.CenterStart,
     ) {
         val thumbPressed by remember { derivedStateOf { isPressed || isDragging } }
-        val thumbColor = lerp(
-            start = colors.thumbColor(enabled, false, thumbPressed),
-            end = colors.thumbColor(enabled, true, thumbPressed),
-            fraction = thumbProgress,
-        )
+        val thumbColor by remember(enabled, thumbPressed, thumbProgress) {
+            derivedStateOf {
+                lerp(
+                    start = colors.thumbColor(enabled, false, thumbPressed),
+                    end = colors.thumbColor(enabled, true, thumbPressed),
+                    fraction = thumbProgress,
+                )
+            }
+        }
 
-        val thumbPressedSize = 28.dp
-        val thumbCheckedSize = 24.dp
-        val thumbUncheckedSize = 16.dp
-        val stateLayerSize = 40.dp
-        val thumbSize by animateDpAsState(
+        val thumbPressedRadiusPx = remember { density.density * SwitchThumbPressedRadius.value }
+        val thumbCheckedRadiusPx = remember { density.density * SwitchThumbCheckedRadius.value }
+        val thumbUncheckedRadiusPx = remember { density.density * SwitchThumbUncheckedRadius.value }
+        val thumbRadiusPx by animateFloatAsState(
             targetValue = if (thumbPressed) {
-                thumbPressedSize
+                thumbPressedRadiusPx
             } else if (checked) {
-                thumbCheckedSize
+                thumbCheckedRadiusPx
             } else {
                 if (thumbContent != null) {
-                    thumbCheckedSize
+                    thumbCheckedRadiusPx
                 } else {
-                    thumbUncheckedSize
+                    thumbUncheckedRadiusPx
                 }
             },
-            animationSpec = tween(durationMillis = 150),
+            animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
         )
+
+        val thumbPositionXPx by remember {
+            derivedStateOf {
+                lerp(thumbMinPositionXPx, thumbMaxPositionXPx, thumbProgress)
+            }
+        }
 
         Box(
             modifier = Modifier
                 .graphicsLayer {
-                    translationX = thumbPositionX.toPx()
+                    translationX = thumbPositionXPx
                 }
-                .size(thumbPressedSize)
+                .size(SwitchThumbPressedSize)
                 .drawBehind {
                     drawCircle(
                         color = thumbColor,
-                        radius = thumbSize.toPx() / 2,
+                        radius = thumbRadiusPx,
                     )
                 }
                 .indication(
                     interactionSource = internalInteractionSource,
                     indication = ripple(
                         bounded = false,
-                        radius = stateLayerSize / 2,
+                        radius = SwitchStateLayerSize / 2,
                     ),
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            Box(modifier = Modifier.size(16.dp)) {
+            Box(
+                modifier = Modifier.size(SwitchDefaults.IconSize),
+                contentAlignment = Alignment.Center,
+            ) {
                 if (thumbContent != null) {
-                    val iconColor = lerp(
-                        start = colors.iconColor(enabled, false),
-                        end = colors.iconColor(enabled, true),
-                        fraction = thumbProgress,
-                    )
+                    val iconColor by remember(thumbPressed, enabled) {
+                        derivedStateOf {
+                            lerp(
+                                start = colors.iconColor(enabled, false),
+                                end = colors.iconColor(enabled, true),
+                                fraction = thumbProgress,
+                            )
+                        }
+                    }
                     CompositionLocalProvider(LocalContentColor provides iconColor) {
                         thumbContent(thumbProgress > 0.5f)
                     }
