@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -26,9 +23,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.t895.switch_test.ui.theme.MaterialswitchcmpTheme
@@ -58,6 +58,9 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val context = LocalContext.current
+        val checkDrawable = ContextCompat.getDrawable(context, R.drawable.ic_check)
+        val crossDrawable = ContextCompat.getDrawable(context, R.drawable.ic_close)
         var enabled by remember { mutableStateOf(true) }
         var checked by remember { mutableStateOf(false) }
         Text("Jetpack Compose Material 3 Switch")
@@ -68,12 +71,12 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
             thumbContent = {
                 if (checked) {
                     Icon(
-                        imageVector = Icons.Filled.Check,
+                        painter = rememberDrawablePainter(checkDrawable),
                         contentDescription = null,
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        painter = rememberDrawablePainter(crossDrawable),
                         contentDescription = null,
                     )
                 }
@@ -87,12 +90,12 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
             thumbContent = { mostlyEnabled ->
                 if (mostlyEnabled) {
                     Icon(
-                        imageVector = Icons.Filled.Check,
+                        painter = rememberDrawablePainter(checkDrawable),
                         contentDescription = null,
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        painter = rememberDrawablePainter(crossDrawable),
                         contentDescription = null,
                     )
                 }
@@ -103,8 +106,19 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
             modifier = Modifier.size(52.dp, 32.dp),
             factory = { context ->
                 MaterialSwitch(context).apply {
+                    if (checked) {
+                        setThumbIconResource(R.drawable.ic_check)
+                    } else {
+                        setThumbIconResource(R.drawable.ic_close)
+                    }
+
                     setOnCheckedChangeListener { _, newChecked ->
                         checked = newChecked
+                        if (checked) {
+                            setThumbIconResource(R.drawable.ic_check)
+                        } else {
+                            setThumbIconResource(R.drawable.ic_close)
+                        }
                     }
                 }
             },
