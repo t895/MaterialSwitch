@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -48,6 +49,20 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun SideBySide(
+    firstContent: @Composable () -> Unit,
+    secondContent: @Composable () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        firstContent()
+        secondContent()
+    }
+}
+
 @Preview
 @Composable
 fun SwitchPreview(modifier: Modifier = Modifier) {
@@ -55,7 +70,7 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
         modifier = modifier
             .background(MaterialTheme.colorScheme.surface)
             .defaultMinSize(100.dp, 100.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val context = LocalContext.current
@@ -63,70 +78,115 @@ fun SwitchPreview(modifier: Modifier = Modifier) {
         val crossDrawable = ContextCompat.getDrawable(context, R.drawable.ic_close)
         var enabled by remember { mutableStateOf(true) }
         var checked by remember { mutableStateOf(false) }
-        Text("Jetpack Compose Material 3 Switch")
-        androidx.compose.material3.Switch(
-            enabled = enabled,
-            checked = checked,
-            onCheckedChange = { checked = it },
-            thumbContent = {
-                if (checked) {
-                    Icon(
-                        painter = rememberDrawablePainter(checkDrawable),
-                        contentDescription = null,
-                    )
-                } else {
-                    Icon(
-                        painter = rememberDrawablePainter(crossDrawable),
-                        contentDescription = null,
-                    )
-                }
-            },
-        )
-        Text("Material Switch Replacement")
-        com.t895.materialswitch.MaterialSwitch(
-            enabled = enabled,
-            checked = checked,
-            onCheckedChange = { checked = it },
-            thumbContent = { mostlyEnabled ->
-                if (mostlyEnabled) {
-                    Icon(
-                        painter = rememberDrawablePainter(checkDrawable),
-                        contentDescription = null,
-                    )
-                } else {
-                    Icon(
-                        painter = rememberDrawablePainter(crossDrawable),
-                        contentDescription = null,
-                    )
-                }
-            },
-        )
-        Text("Android View Material 3 Switch")
-        AndroidView(
-            modifier = Modifier.size(52.dp, 32.dp),
-            factory = { context ->
-                MaterialSwitch(context).apply {
-                    if (checked) {
-                        setThumbIconResource(R.drawable.ic_check)
-                    } else {
-                        setThumbIconResource(R.drawable.ic_close)
-                    }
-
-                    setOnCheckedChangeListener { _, newChecked ->
-                        checked = newChecked
+        Text("Jetpack Compose Material 3 Expressive Switch")
+        SideBySide(
+            firstContent = {
+                androidx.compose.material3.Switch(
+                    enabled = enabled,
+                    checked = checked,
+                    onCheckedChange = { checked = it },
+                    thumbContent = {
                         if (checked) {
-                            setThumbIconResource(R.drawable.ic_check)
+                            Icon(
+                                painter = rememberDrawablePainter(checkDrawable),
+                                contentDescription = null,
+                            )
                         } else {
-                            setThumbIconResource(R.drawable.ic_close)
+                            Icon(
+                                painter = rememberDrawablePainter(crossDrawable),
+                                contentDescription = null,
+                            )
                         }
-                    }
-                }
+                    },
+                )
             },
-            update = { view ->
-                view.isEnabled = enabled
-                view.isChecked = checked
-            },
+            secondContent = {
+                androidx.compose.material3.Switch(
+                    enabled = enabled,
+                    checked = checked,
+                    onCheckedChange = { checked = it },
+                )
+            }
         )
+
+        Text("Android View Material 3 Switch")
+        SideBySide(
+            firstContent = {
+                AndroidView(
+                    modifier = Modifier.size(52.dp, 32.dp),
+                    factory = { context ->
+                        MaterialSwitch(context).apply {
+                            if (checked) {
+                                setThumbIconResource(R.drawable.ic_check)
+                            } else {
+                                setThumbIconResource(R.drawable.ic_close)
+                            }
+
+                            setOnCheckedChangeListener { _, newChecked ->
+                                checked = newChecked
+                                if (checked) {
+                                    setThumbIconResource(R.drawable.ic_check)
+                                } else {
+                                    setThumbIconResource(R.drawable.ic_close)
+                                }
+                            }
+                        }
+                    },
+                    update = { view ->
+                        view.isEnabled = enabled
+                        view.isChecked = checked
+                    },
+                )
+            },
+            secondContent = {
+                AndroidView(
+                    modifier = Modifier.size(52.dp, 32.dp),
+                    factory = { context ->
+                        MaterialSwitch(context).apply {
+                            setOnCheckedChangeListener { _, newChecked ->
+                                checked = newChecked
+                            }
+                        }
+                    },
+                    update = { view ->
+                        view.isEnabled = enabled
+                        view.isChecked = checked
+                    },
+                )
+            }
+        )
+
+        Text("Material Switch")
+        SideBySide(
+            firstContent = {
+                com.t895.materialswitch.MaterialSwitch(
+                    enabled = enabled,
+                    checked = checked,
+                    onCheckedChange = { checked = it },
+                    thumbContent = { mostlyEnabled ->
+                        if (mostlyEnabled) {
+                            Icon(
+                                painter = rememberDrawablePainter(checkDrawable),
+                                contentDescription = null,
+                            )
+                        } else {
+                            Icon(
+                                painter = rememberDrawablePainter(crossDrawable),
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                )
+            },
+            secondContent = {
+                com.t895.materialswitch.MaterialSwitch(
+                    enabled = enabled,
+                    checked = checked,
+                    onCheckedChange = { checked = it },
+                )
+            }
+        )
+
         Text("Enabled")
         Checkbox(
             checked = enabled,
