@@ -16,8 +16,10 @@
 
 package com.t895.materialswitch
 
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
@@ -104,7 +106,10 @@ fun MaterialSwitch(
     modifier: Modifier = Modifier,
     thumbContent: (@Composable BoxScope.(mostlyEnabled: Boolean) -> Unit)? = null,
     enabled: Boolean = true,
-    colors: MaterialSwitchColors = MaterialSwitchColors(MaterialTheme.colorScheme, SwitchDefaults.colors()),
+    colors: MaterialSwitchColors = MaterialSwitchColors(
+        MaterialTheme.colorScheme,
+        SwitchDefaults.colors()
+    ),
     interactionSource: MutableInteractionSource? = null,
 ) {
     val switchCornerSize = 128.dp
@@ -160,6 +165,21 @@ fun MaterialSwitch(
         animationSpec = if (isDragging) {
             tween(durationMillis = 0)
         } else {
+            spring(dampingRatio = Spring.DampingRatioLowBouncy)
+        },
+    )
+
+    val colorProgressAnimated by animateFloatAsState(
+        targetValue = if (isDragging) {
+            dragFloat
+        } else if (checked) {
+            1f
+        } else {
+            0f
+        },
+        animationSpec = if (isDragging) {
+            tween(durationMillis = 0)
+        } else {
             tween(durationMillis = 250)
         },
     )
@@ -173,13 +193,13 @@ fun MaterialSwitch(
     val trackColor = lerp(
         start = colors.trackColor(enabled, false),
         end = colors.trackColor(enabled, true),
-        fraction = thumbProgress,
+        fraction = colorProgressAnimated,
     )
 
     val borderColor = lerp(
         start = colors.borderColor(enabled, false),
         end = colors.borderColor(enabled, true),
-        fraction = thumbProgress,
+        fraction = colorProgressAnimated,
     )
 
     val thumbPositionX = lerp(thumbMinPositionX, thumbMaxPositionX, thumbProgress)
