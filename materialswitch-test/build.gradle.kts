@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+kotlin {
+    jvmToolchain(libs.versions.jvmToolchain.get().toInt())
+}
+
 android {
     namespace = "com.t895.switch_test"
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
@@ -32,9 +36,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
     buildFeatures {
         compose = true
