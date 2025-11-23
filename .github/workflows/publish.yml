@@ -16,7 +16,7 @@ jobs:
        uses: actions/setup-java@v4
        with:
          distribution: 'temurin'
-         java-version: '17'
+         java-version: '8'
      - name: Give execution permissions to the gradle wrapper
        run: chmod +x ./gradlew
      - name: Create secrets file
