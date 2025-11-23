@@ -15,7 +15,7 @@ multiple animations and color states.
 ### Dependency
 
 Works on all platforms that Compose multiplatform is available on
-`implementation("io.github.t895:materialswitch:0.2.0")`
+`implementation("io.github.t895:materialswitch:0.2.1")`
 
 ### Demo
 
