@@ -11,7 +11,7 @@ material3 = "1.5.0-alpha09"
 androidCompileSdk = "36"
 androidMinSdk = "21"
 androidTargetSdk = "36"
-jvmToolchain = "8"
+jvmToolchain = "17"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
