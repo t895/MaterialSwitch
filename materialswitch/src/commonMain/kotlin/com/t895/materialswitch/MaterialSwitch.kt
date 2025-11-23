@@ -410,11 +410,11 @@ class MaterialSwitchColors(
         colorScheme: ColorScheme,
         colors: androidx.compose.material3.SwitchColors,
     ) : this(
-        colors.checkedThumbColor,
+        colorScheme.onPrimary,
         colorScheme.primaryContainer,
         colors.checkedTrackColor,
         colors.checkedBorderColor,
-        colors.checkedIconColor,
+        colorScheme.primary,
         colors.uncheckedThumbColor,
         colorScheme.onSurfaceVariant,
         colors.uncheckedTrackColor,
