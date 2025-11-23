@@ -15,7 +15,7 @@ jobs:
      - name: Set up Java
        uses: actions/setup-java@v4
        with:
-         distribution: 'temurin'
+         distribution: 'zulu'
          java-version: '8'
      - name: Give execution permissions to the gradle wrapper
        run: chmod +x ./gradlew
